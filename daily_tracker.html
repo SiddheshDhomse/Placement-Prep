@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>90-Day SDE Tracker — Siddhesh</title>
+<style>
+:root{
+  --bg:#0F172A;--card:#1E293B;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
+  --accent:#6366F1;--green:#10B981;--amber:#F59E0B;--red:#F87171;--purple:#A78BFA;--blue:#3B82F6;
+  --dsa-bg:#1D3A6E;--proj-bg:#5C3A0A;--rev-bg:#3B2678;--run-bg:#064E3B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;padding:16px}
+h1{font-size:20px;font-weight:700;color:var(--text)}
+h2{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 8px}
+.page-switch{display:flex;gap:8px;flex-wrap:wrap;max-width:700px;margin:0 auto 16px}
+.switch-link{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;border:0.5px solid var(--border);background:var(--card);color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:all .15s}
+.switch-link:hover{border-color:var(--accent);color:var(--text)}
+.switch-link.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.stat{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-n{font-size:22px;font-weight:700}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+.n-accent{color:var(--accent)}.n-green{color:var(--green)}.n-amber{color:var(--amber)}.n-purple{color:var(--purple)}
+.day-nav{display:flex;align-items:center;gap:10px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.day-nav button{background:none;border:0.5px solid var(--border);color:var(--text);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:13px}
+.day-nav button:hover{background:var(--border)}
+.day-info{flex:1;text-align:center}
+.day-num{font-size:16px;font-weight:700}
+.day-date{font-size:11px;color:var(--muted)}
+.blocks{display:flex;flex-direction:column;gap:6px}
+.block{display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;transition:border-color .15s,opacity .15s;border-left:3px solid var(--border)}
+.block:hover{border-color:var(--accent)}
+.block.done{opacity:.6}
+.block.done .block-title{text-decoration:line-through;color:var(--muted)}
+.block-time{font-size:11px;color:var(--muted);width:88px;flex-shrink:0;text-align:center;line-height:1.4}
+.block-body{flex:1}
+.block-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.block-sub{font-size:11px;color:var(--muted)}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.check{width:20px;height:20px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.block.done .check{background:var(--green);border-color:var(--green)}
+.check svg{display:none}
+.block.done .check svg{display:block}
+.b-run{border-left-color:var(--green)}.b-dsa{border-left-color:var(--blue)}.b-proj{border-left-color:var(--amber)}.b-rev{border-left-color:var(--purple)}.b-break{border-left-color:var(--border)}.b-misc{border-left-color:var(--border)}.b-free{border-left-color:var(--red)}
+.t-run{background:#064E3B;color:var(--green)}.t-dsa{background:var(--dsa-bg);color:var(--blue)}.t-proj{background:var(--proj-bg);color:var(--amber)}.t-rev{background:var(--rev-bg);color:var(--purple)}.t-break{background:#1E293B;color:var(--muted);border:0.5px solid var(--border)}.t-free{background:#4C1D1D;color:var(--red)}.t-misc{background:#1E293B;color:var(--muted)}
+.progress-bar{background:var(--border);border-radius:4px;height:6px;margin:8px 0 16px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .3s}
+.progress-label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-top:4px}
+.lc-section{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px;margin-top:8px}
+.lc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.lc-label{font-size:12px;color:var(--muted);width:80px}
+.lc-input{flex:1;background:var(--bg);border:0.5px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:13px}
+.lc-input:focus{outline:none;border-color:var(--accent)}
+.save-btn{background:var(--accent);color:white;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.save-btn:hover{opacity:.85}
+.streak-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.streak-day{height:28px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.streak-day.done{background:#1D3A6E;color:var(--blue)}
+.streak-day.great{background:#064E3B;color:var(--green)}
+.streak-day.today{border:1px solid var(--accent)}
+.notebook{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px;margin-top:8px}
+.nb-input{width:100%;background:var(--bg);border:0.5px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-size:12px;resize:vertical;min-height:70px;font-family:inherit;line-height:1.5}
+.nb-input:focus{outline:none;border-color:var(--purple)}
+.nb-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.nb-label{font-size:11px;color:var(--muted);width:60px}
+.nb-val{font-size:13px;font-weight:600;color:var(--text)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-left:6px}
+.badge-e{background:#064E3B;color:var(--green)}.badge-m{background:var(--dsa-bg);color:var(--blue)}.badge-h{background:#4C1D1D;color:var(--red)}
+.sect-divider{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 0 4px;border-top:0.5px solid var(--border);margin-top:8px}
+.reset-btn{background:none;border:0.5px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}
+.reset-btn:hover{border-color:var(--red);color:var(--red)}
+.month-tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--dsa-bg);color:var(--blue)}
+.container{max-width:700px;margin:0 auto;padding-bottom:40px}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.85);backdrop-filter:blur(4px);align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal.active{display:flex}
+.cal-container{background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);width:100%;max-width:420px;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.cal-day{aspect-ratio:1;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;color:var(--muted);transition:all .2s}
+.cal-day:hover{border-color:var(--accent);color:var(--text)}
+.cal-day.active-day{border:2px solid var(--accent);color:var(--text);font-weight:700;background:rgba(99,102,241,0.1)}
+.cal-day.done-day{background:#1D3A6E;color:var(--blue);border-color:#1D3A6E}
+.cal-day.great-day{background:#064E3B;color:var(--green);border-color:#064E3B}
+.cal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0 4px}
+.cal-close:hover{color:var(--text)}
+@media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr)}.block-time{width:70px;font-size:10px}}
+</style>
+</head>
+<body>
+<div class="page-switch">
+  <a class="switch-link active" href="daily_tracker.html">Daily Tracker</a>
+  <a class="switch-link" href="dsa_revision_tracker.html">Revision Tracker</a>
+</div>
+<div class="container">
+
+<div class="top-bar">
+  <div>
+    <h1>90-Day SDE Tracker</h1>
+    <div class="sub">Siddhesh — VIT Pune 2026 · Java + DSA + Full Stack</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="month-tag" id="month-tag">Month 1</span>
+    <button class="reset-btn" onclick="resetDay()">Reset day</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n n-accent" id="s-day">1</div><div class="stat-l">Current day</div></div>
+  <div class="stat"><div class="stat-n n-green" id="s-lc">0</div><div class="stat-l">LC solved today</div></div>
+  <div class="stat"><div class="stat-n n-amber" id="s-streak">0</div><div class="stat-l">Day streak</div></div>
+  <div class="stat"><div class="stat-n n-purple" id="s-total">0</div><div class="stat-l">Total LC solved</div></div>
+</div>
+
+<div class="day-nav">
+  <button onclick="changeDay(-1)">&#8592;</button>
+  <div class="day-info">
+    <div class="day-num" id="nav-day">Day 1 of 90</div>
+    <div class="day-date" id="nav-date"></div>
+  </div>
+  <button onclick="openCalendar()" style="display:flex;align-items:center;gap:6px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    Calendar
+  </button>
+  <button onclick="changeDay(1)">&#8594;</button>
+</div>
+</div><!-- /.container -->
+
+<div id="calendar-modal" class="modal">
+  <div class="cal-container">
+    <div class="cal-header">
+      <span>90-Day Journey</span>
+      <button class="cal-close" onclick="closeCalendar()">&times;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:12px;display:flex;gap:12px;justify-content:center;">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#064E3B;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Great</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#1D3A6E;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Partial</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+  <span style="font-size:12px;color:var(--muted)">Today's progress</span>
+  <span style="font-size:12px;font-weight:600" id="prog-label">0 / 9 blocks</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+
+<div class="blocks" id="blocks-container"></div>
+
+<h2>LeetCode log</h2>
+<div class="lc-section">
+  <div class="lc-row">
+    <span class="lc-label">Problem 1</span>
+    <input class="lc-input" id="lc1" placeholder="Problem name or number" oninput="saveLCLog()"/>
+    <span class="badge badge-e">Easy</span>
+  </div>
+  <div class="lc-row">
+    <span class="lc-label">Problem 2</span>
+    <input class="lc-input" id="lc2" placeholder="Problem name or number" oninput="saveLCLog()"/>
+    <span class="badge badge-m">Medium</span>
+  </div>
+  <div class="lc-row">
+    <span class="lc-label">Problem 3</span>
+    <input class="lc-input" id="lc3" placeholder="Problem name or number" oninput="saveLCLog()"/>
+    <span class="badge badge-m">Medium</span>
+  </div>
+  <div class="lc-row" style="margin-top:4px">
+    <span class="lc-label" style="font-size:11px;color:var(--muted)">Pattern</span>
+    <input class="lc-input" id="lc-pattern" placeholder="e.g. Two pointers, Sliding window..." oninput="saveLCLog()"/>
+  </div>
+</div>
+
+<h2>Notebook entry</h2>
+<div class="notebook">
+  <textarea class="nb-input" id="nb-notes" placeholder="Key insight, approach, edge case, complexity... (this is your spaced rep log)" oninput="saveNotes()"></textarea>
+  <div class="nb-row">
+    <span class="nb-label" style="font-size:11px;color:var(--muted)">Tomorrow's 3 problems</span>
+    <input class="lc-input" id="nb-tomorrow" placeholder="Plan ahead tonight" oninput="saveNotes()" style="flex:1"/>
+  </div>
+</div>
+
+<h2>Last 7 days</h2>
+<div class="streak-row" id="streak-row"></div>
+<div style="font-size:10px;color:var(--muted);margin-top:6px;display:flex;gap:12px">
+  <span><span style="display:inline-block;width:10px;height:10px;background:#064E3B;border-radius:2px;margin-right:4px;vertical-align:middle"></span>All blocks done</span>
+  <span><span style="display:inline-block;width:10px;height:10px;background:#1D3A6E;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Partial</span>
+  <span><span style="display:inline-block;width:10px;height:10px;background:var(--border);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Skipped / future</span>
+</div>
+
+<script>
+const BLOCKS = [
+  {id:"b1",time:"7:30 – 8:15",title:"Morning routine",sub:"Freshen up, breakfast — no phone scrolling",tag:"45 min",tc:"t-misc",bc:"b-misc",sect:"Morning"},
+  {id:"b2",time:"8:15 – 9:00",title:"Morning run",sub:"Your existing routine — energy for the day",tag:"45 min",tc:"t-run",bc:"b-run"},
+  {id:"b3",time:"9:00 – 10:00",title:"Notebook review",sub:"Scan yesterday's DSA notes before deep work",tag:"1 hr",tc:"t-misc",bc:"b-misc"},
+  {id:"b4",time:"10:00 – 11:30",title:"DSA block 1",sub:"2 problems + notebook entry",tag:"90 min | DSA",tc:"t-dsa",bc:"b-dsa",sect:"DSA — 4 hrs"},
+  {id:"b5",time:"11:30 – 11:45",title:"Break",sub:"Walk, water, stretch — no phone",tag:"15 min",tc:"t-break",bc:"b-break"},
+  {id:"b6",time:"11:45 – 1:15",title:"DSA block 2",sub:"1 medium + spaced repetition revision",tag:"90 min | DSA",tc:"t-dsa",bc:"b-dsa"},
+  {id:"b7",time:"2:15 – 3:45",title:"Project block 1",sub:"React / Spring Boot feature build",tag:"90 min | Project",tc:"t-proj",bc:"b-proj",sect:"Project — 3 hrs"},
+  {id:"b8",time:"4:00 – 5:30",title:"Project block 2",sub:"Continue + GitHub commit",tag:"90 min | Project",tc:"t-proj",bc:"b-proj"},
+  {id:"b9",time:"7:30 – 9:00",title:"CS fundamentals",sub:"DBMS / OS / OOP / Networks — 1 topic/week",tag:"90 min | Revision",tc:"t-rev",bc:"b-rev",sect:"Evening"},
+];
+
+const KEY = d => `day_${d}`;
+let appStartDate = localStorage.getItem('sde_tracker_start');
+if(!appStartDate) {
+  appStartDate = new Date().toISOString();
+  localStorage.setItem('sde_tracker_start', appStartDate);
+}
+const startDt = new Date(appStartDate);
+// Compare calendar dates by setting both to midnight local time
+const startDay = new Date(startDt.getFullYear(), startDt.getMonth(), startDt.getDate());
+const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+let diff = Math.round((today - startDay) / (1000 * 60 * 60 * 24));
+let currentDay = Math.min(Math.max(diff + 1, 1), 90);
+
+function loadState(day){
+  try{ return JSON.parse(localStorage.getItem(KEY(day))) || {}; }
+  catch(e){ return {}; }
+}
+function saveState(day, state){
+  localStorage.setItem(KEY(day), JSON.stringify(state));
+}
+
+function getState(){ return loadState(currentDay); }
+function patchState(patch){
+  const s = getState();
+  Object.assign(s, patch);
+  saveState(currentDay, s);
+}
+
+function renderBlocks(){
+  const state = getState();
+  const container = document.getElementById("blocks-container");
+  container.innerHTML = "";
+  let lastSect = null;
+  BLOCKS.forEach(b => {
+    if(b.sect && b.sect !== lastSect){
+      lastSect = b.sect;
+      const d = document.createElement("div");
+      d.className = "sect-divider";
+      d.textContent = b.sect;
+      container.appendChild(d);
+    }
+    const done = !!(state.blocks && state.blocks[b.id]);
+    const div = document.createElement("div");
+    div.className = `block ${b.bc} ${done?"done":""}`;
+    div.onclick = () => toggleBlock(b.id);
+    div.innerHTML = `
+      <div class="check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="block-time">${b.time}</div>
+      <div class="block-body"><div class="block-title">${b.title}</div><div class="block-sub">${b.sub}</div></div>
+      <span class="tag ${b.tc}">${b.tag}</span>
+    `;
+    container.appendChild(div);
+  });
+  updateProgress();
+}
+
+function toggleBlock(id){
+  const s = getState();
+  if(!s.blocks) s.blocks = {};
+  s.blocks[id] = !s.blocks[id];
+  saveState(currentDay, s);
+  renderBlocks();
+  updateStats();
+  renderStreak();
+}
+
+function updateProgress(){
+  const s = getState();
+  const done = s.blocks ? Object.values(s.blocks).filter(Boolean).length : 0;
+  const total = BLOCKS.length;
+  document.getElementById("prog-fill").style.width = `${Math.round(done/total*100)}%`;
+  document.getElementById("prog-label").textContent = `${done} / ${total} blocks`;
+  document.getElementById("s-lc").textContent = countLC();
+}
+
+function countLC(){
+  const s = getState();
+  return [s.lc1,s.lc2,s.lc3].filter(v=>v&&v.trim()).length;
+}
+
+function updateStats(){
+  const s = getState();
+  document.getElementById("s-day").textContent = currentDay;
+  document.getElementById("s-lc").textContent = countLC();
+  document.getElementById("s-streak").textContent = calcStreak();
+  document.getElementById("s-total").textContent = calcTotalLC();
+  document.getElementById("nav-day").textContent = `Day ${currentDay} of 90`;
+  const displayDate = new Date(startDt);
+  displayDate.setDate(displayDate.getDate() + (currentDay - 1));
+  document.getElementById("nav-date").textContent = displayDate.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});
+  const month = currentDay <= 30 ? "Month 1" : currentDay <= 60 ? "Month 2" : "Month 3";
+  document.getElementById("month-tag").textContent = month;
+  const mtc = currentDay <= 30 ? "" : currentDay <= 60 ? "background:#5C3A0A;color:var(--amber)" : "background:#3B2678;color:var(--purple)";
+  if(mtc) document.getElementById("month-tag").style.cssText = mtc;
+  else document.getElementById("month-tag").style.cssText = "";
+}
+
+function calcStreak(){
+  let streak = 0;
+  for(let d = currentDay; d >= 1; d--){
+    const s = loadState(d);
+    const done = s.blocks ? Object.values(s.blocks).filter(Boolean).length : 0;
+    if(done >= 6) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function calcTotalLC(){
+  let total = 0;
+  for(let d = 1; d <= 90; d++){
+    const s = loadState(d);
+    total += [s.lc1,s.lc2,s.lc3].filter(v=>v&&v.trim()).length;
+  }
+  return total;
+}
+
+function renderStreak(){
+  const row = document.getElementById("streak-row");
+  row.innerHTML = "";
+  for(let i = 6; i >= 0; i--){
+    const d = currentDay - i;
+    const div = document.createElement("div");
+    div.className = "streak-day";
+    if(d < 1){ div.textContent = "-"; row.appendChild(div); continue; }
+    const s = loadState(d);
+    const done = s.blocks ? Object.values(s.blocks).filter(Boolean).length : 0;
+    if(done >= BLOCKS.length) div.classList.add("great");
+    else if(done >= 4) div.classList.add("done");
+    if(d === currentDay) div.classList.add("today");
+    div.textContent = `D${d}`;
+    row.appendChild(div);
+  }
+}
+
+function saveLCLog(){
+  patchState({
+    lc1: document.getElementById("lc1").value,
+    lc2: document.getElementById("lc2").value,
+    lc3: document.getElementById("lc3").value,
+    lcPattern: document.getElementById("lc-pattern").value,
+  });
+  updateStats();
+}
+
+function saveNotes(){
+  patchState({
+    notes: document.getElementById("nb-notes").value,
+    tomorrow: document.getElementById("nb-tomorrow").value,
+  });
+}
+
+function loadInputs(){
+  const s = getState();
+  document.getElementById("lc1").value = s.lc1 || "";
+  document.getElementById("lc2").value = s.lc2 || "";
+  document.getElementById("lc3").value = s.lc3 || "";
+  document.getElementById("lc-pattern").value = s.lcPattern || "";
+  document.getElementById("nb-notes").value = s.notes || "";
+  document.getElementById("nb-tomorrow").value = s.tomorrow || "";
+}
+
+function changeDay(delta){
+  const next = currentDay + delta;
+  if(next < 1 || next > 90) return;
+  currentDay = next;
+  renderBlocks();
+  loadInputs();
+  updateStats();
+  renderStreak();
+}
+
+function resetDay(){
+  if(!confirm(`Reset all data for Day ${currentDay}?`)) return;
+  localStorage.removeItem(KEY(currentDay));
+  renderBlocks();
+  loadInputs();
+  updateStats();
+  renderStreak();
+}
+
+renderBlocks();
+loadInputs();
+updateStats();
+renderStreak();
+
+function openCalendar() {
+  const grid = document.getElementById("cal-grid");
+  grid.innerHTML = "";
+  for(let i = 1; i <= 90; i++) {
+    const s = loadState(i);
+    const done = s.blocks ? Object.values(s.blocks).filter(Boolean).length : 0;
+    const d = document.createElement("div");
+    d.className = "cal-day";
+    if (i === currentDay) d.classList.add("active-day");
+    if (done >= BLOCKS.length) d.classList.add("great-day");
+    else if (done >= 4) d.classList.add("done-day");
+    d.textContent = i;
+    d.onclick = () => { jumpToDay(i); closeCalendar(); };
+    grid.appendChild(d);
+  }
+  document.getElementById("calendar-modal").classList.add("active");
+}
+function closeCalendar() {
+  document.getElementById("calendar-modal").classList.remove("active");
+}
+function jumpToDay(day) {
+  currentDay = day;
+  renderBlocks();
+  loadInputs();
+  updateStats();
+  renderStreak();
+}
+window.onclick = function(event) {
+  const modal = document.getElementById("calendar-modal");
+  if (event.target === modal) closeCalendar();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DSA Revision Tracker - Siddhesh</title>
+<style>
+:root{
+  --bg:#0F172A;--card:#1E293B;--card2:#253347;--border:#334155;--text:#F1F5F9;--muted:#94A3B8;
+  --accent:#6366F1;--green:#10B981;--amber:#F59E0B;--red:#F87171;--purple:#A78BFA;--blue:#3B82F6;
+  --teal:#2DD4BF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;padding:16px 12px 40px}
+h1{font-size:20px;font-weight:700}
+.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.page-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.switch-link{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;border:0.5px solid var(--border);background:var(--card);color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;transition:all .15s}
+.switch-link:hover{border-color:var(--accent);color:var(--text)}
+.switch-link.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:7px 16px;border-radius:8px;border:0.5px solid var(--border);font-size:13px;font-weight:500;cursor:pointer;background:var(--card);color:var(--muted);transition:all .15s}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab:hover:not(.active){border-color:var(--accent);color:var(--text)}
+.panel{display:none}.panel.active{display:block}
+.form-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+.form-title{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:0.5px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field select option{background:var(--card)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{opacity:.85}
+.btn-ghost{background:none;border:0.5px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:6px}
+.btn-green{background:#064E3B;color:var(--green);border:none}.btn-green:hover{opacity:.85}
+.today-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.today-date{font-size:13px;color:var(--muted)}
+.rev-count{font-size:13px;font-weight:600;color:var(--accent)}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.rev-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;border-left:3px solid var(--border);transition:border-color .15s}
+.rev-card.urgent{border-left-color:var(--red)}
+.rev-card.today-due{border-left-color:var(--amber)}
+.rev-card.done-today{border-left-color:var(--green);opacity:.55}
+.rev-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.rev-name{font-size:14px;font-weight:600;flex:1}
+.diff-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.d-easy{background:#064E3B;color:var(--green)}.d-med{background:#1D3A6E;color:var(--blue)}.d-hard{background:#4C1D1D;color:var(--red)}
+.rev-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
+.rev-meta span{display:flex;align-items:center;gap:4px}
+.rev-approach{font-size:12px;color:var(--muted);background:var(--bg);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.5;border-left:2px solid var(--border)}
+.rev-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.next-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600}
+.nb-green{background:#064E3B;color:var(--green)}.nb-amber{background:#5C3A0A;color:var(--amber)}.nb-red{background:#4C1D1D;color:var(--red)}.nb-purple{background:#3B2678;color:var(--purple)}.nb-blue{background:#1D3A6E;color:var(--blue)}
+.interval-chip{font-size:10px;color:var(--muted);margin-left:auto}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:6px;border:0.5px solid var(--border);font-size:11px;font-weight:500;cursor:pointer;background:var(--card);color:var(--muted)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.search-input{flex:1;min-width:150px;background:var(--card);border:0.5px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:12px}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.prob-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.prob-num{font-size:12px;font-weight:700;color:var(--muted);width:32px;flex-shrink:0}
+.prob-body{flex:1;min-width:0}
+.prob-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prob-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.prob-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.heat-dots{display:flex;gap:3px}
+.heat-dot{width:8px;height:8px;border-radius:2px;background:var(--border)}
+.heat-dot.done{background:var(--green)}
+.delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+.delete-btn:hover{color:var(--red);background:#4C1D1D}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-n{font-size:26px;font-weight:700}
+.stat-l{font-size:11px;color:var(--muted);margin-top:3px}
+.topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.topic-card{background:var(--card);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px}
+.topic-name{font-size:12px;font-weight:600;margin-bottom:6px}
+.topic-bar-bg{background:var(--border);border-radius:3px;height:5px;overflow:hidden}
+.topic-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.topic-count{font-size:10px;color:var(--muted);margin-top:4px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.cal-day{height:22px;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted)}
+.cal-day.has1{background:#1D3A6E;color:var(--blue)}
+.cal-day.has2{background:#064E3B;color:var(--green)}
+.cal-day.has3{background:#3B2678;color:var(--purple)}
+.cal-label{font-size:10px;color:var(--muted);text-align:center}
+.interval-info{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.icard{background:var(--card);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;flex:1;min-width:80px;text-align:center}
+.icard-n{font-size:13px;font-weight:700}
+.icard-l{font-size:10px;color:var(--muted);margin-top:2px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:14px}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;margin-top:-4px}
+@media(max-width:700px){.row2,.row3,.stats-grid,.topic-grid{grid-template-columns:1fr}.prob-card{align-items:flex-start;flex-direction:column}.prob-actions{width:100%;flex-wrap:wrap}.interval-chip{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="page-switch">
+  <a class="switch-link" href="daily_tracker.html">Daily Tracker</a>
+  <a class="switch-link active" href="dsa_revision_tracker.html">Revision Tracker</a>
+</div>
+<div class="top">
+  <div><h1>DSA Revision Tracker</h1><div class="sub">Spaced repetition - revise every 1, 3, 7, 15, 30, 60 days</div></div>
+  <button class="btn btn-primary btn-sm" onclick="openTab('add')">+ Add problem</button>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="openTab('today')">Today's revision</div>
+  <div class="tab" onclick="openTab('add')">Add problem</div>
+  <div class="tab" onclick="openTab('all')">All problems</div>
+  <div class="tab" onclick="openTab('stats')">Stats</div>
+</div>
+<div class="panel active" id="panel-today">
+  <div class="today-header">
+    <div>
+      <div style="font-size:15px;font-weight:600" id="today-title">Today's revision</div>
+      <div class="today-date" id="today-date-str"></div>
+    </div>
+    <div class="rev-count" id="rev-count-str"></div>
+  </div>
+  <div class="interval-info" id="interval-info-row"></div>
+  <div id="today-list"></div>
+</div>
+<div class="panel" id="panel-add">
+  <div class="form-card">
+    <div class="form-title">Log a new problem</div>
+    <div class="row2">
+      <div class="field">
+        <label>Problem name / number</label>
+        <input id="f-name" placeholder="e.g. Two Sum, LC 1"/>
+      </div>
+      <div class="field">
+        <label>Topic / pattern</label>
+        <input id="f-topic" placeholder="e.g. Arrays, Two pointers"/>
+      </div>
+    </div>
+    <div class="row3">
+      <div class="field">
+        <label>Difficulty</label>
+        <select id="f-diff">
+          <option value="Easy">Easy</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Time taken</label>
+        <input id="f-time" placeholder="e.g. 25 min"/>
+      </div>
+      <div class="field">
+        <label>Date solved</label>
+        <input id="f-date" type="date"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Approach (3 lines max - for revision)</label>
+      <textarea id="f-approach" placeholder="e.g. Use a hashmap to store seen values. For each element check if complement exists. O(n) time O(n) space."></textarea>
+    </div>
+    <div class="field">
+      <label>Key insight / edge case</label>
+      <input id="f-insight" placeholder="e.g. Watch out for duplicates, handle empty array"/>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" onclick="addProblem()">Save problem</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+  <div id="add-msg" style="font-size:13px;color:var(--green);padding:4px 0;min-height:20px"></div>
+</div>
+<div class="panel" id="panel-all">
+  <div class="filter-row">
+    <input class="search-input" id="search-input" placeholder="Search problems..." oninput="renderAll()"/>
+    <button class="filter-btn active" onclick="setFilter('All',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('Easy',this)">Easy</button>
+    <button class="filter-btn" onclick="setFilter('Medium',this)">Medium</button>
+    <button class="filter-btn" onclick="setFilter('Hard',this)">Hard</button>
+  </div>
+  <div id="all-list"></div>
+</div>
+<div class="panel" id="panel-stats">
+  <div class="stats-grid" id="stats-grid"></div>
+  <div style="font-size:13px;font-weight:600;margin-bottom:10px">By topic</div>
+  <div class="topic-grid" id="topic-grid"></div>
+  <div style="font-size:13px;font-weight:600;margin:16px 0 8px">Last 28 days activity</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px" id="cal-headers"></div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div style="font-size:10px;color:var(--muted);margin-top:6px;display:flex;gap:12px">
+    <span><span style="display:inline-block;width:8px;height:8px;background:#064E3B;border-radius:2px;margin-right:3px;vertical-align:middle"></span>3+ solved</span>
+    <span><span style="display:inline-block;width:8px;height:8px;background:#1D3A6E;border-radius:2px;margin-right:3px;vertical-align:middle"></span>1-2 solved</span>
+    <span><span style="display:inline-block;width:8px;height:8px;background:var(--border);border-radius:2px;margin-right:3px;vertical-align:middle"></span>None</span>
+  </div>
+</div>
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    <div class="modal-title">Edit problem</div>
+    <div class="field"><label>Problem name</label><input id="e-name"/></div>
+    <div class="row2">
+      <div class="field"><label>Topic</label><input id="e-topic"/></div>
+      <div class="field"><label>Difficulty</label><select id="e-diff"><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+    </div>
+    <div class="field"><label>Time taken</label><input id="e-time"/></div>
+    <div class="field"><label>Approach</label><textarea id="e-approach"></textarea></div>
+    <div class="field"><label>Key insight</label><input id="e-insight"/></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+<script>
+const STORAGE_KEY = "dsa_problems_v2";
+const INTERVALS = [1, 3, 7, 15, 30, 60];
+const INTERVAL_LABELS = ["Day 1", "Day 3", "Day 7", "Day 15", "Day 30", "Day 60"];
+const TAB_ORDER = ["today", "add", "all", "stats"];
+let problems = [];
+let filterDiff = "All";
+let editId = null;
+function pad2(value){ return String(value).padStart(2, "0"); }
+function toDateInputValue(date){ return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`; }
+function todayStr(){ return toDateInputValue(new Date()); }
+function dateFromStr(value){
+  if(typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)){ return dateFromStr(todayStr()); }
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+function fmtDate(value){ return dateFromStr(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); }
+function daysBetween(fromDate, toDate){ return Math.round((dateFromStr(toDate) - dateFromStr(fromDate)) / 86400000); }
+function addDays(value, days){ const date = dateFromStr(value); date.setDate(date.getDate() + days); return toDateInputValue(date); }
+function escapeHtml(value){ return String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#39;"); }
+function makeProblemId(){ return `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
+function normalizeProblem(raw){
+  const revisionsDone = {};
+  if(raw && raw.revisionsDone && typeof raw.revisionsDone === "object"){
+    INTERVALS.forEach(interval => { const value = raw.revisionsDone[interval]; if(typeof value === "string" && value){ revisionsDone[interval] = value; } });
+  }
+  return {
+    id: typeof raw?.id === "string" && raw.id ? raw.id : makeProblemId(),
+    name: String(raw?.name || "").trim(),
+    topic: String(raw?.topic || "").trim(),
+    difficulty: ["Easy", "Medium", "Hard"].includes(raw?.difficulty) ? raw.difficulty : "Medium",
+    timeTaken: String(raw?.timeTaken || "").trim(),
+    dateSolved: /^\d{4}-\d{2}-\d{2}$/.test(raw?.dateSolved || "") ? raw.dateSolved : todayStr(),
+    approach: String(raw?.approach || "").trim(),
+    insight: String(raw?.insight || "").trim(),
+    revisionsDone,
+    markedTodayDone: Boolean(raw?.markedTodayDone),
+    _markedDate: typeof raw?._markedDate === "string" ? raw._markedDate : ""
+  };
+}
+function load(){
+  try{
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    problems = Array.isArray(stored) ? stored.map(normalizeProblem).filter(problem => problem.name) : [];
+  }catch(error){ problems = []; }
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(problems)); }
+function findProblemIndexById(id){ return problems.findIndex(problem => String(problem.id) === String(id)); }
+function getProblemById(id){ return problems[findProblemIndexById(id)] || null; }
+function getRevisionDates(problem){ return INTERVALS.map(interval => addDays(problem.dateSolved, interval)); }
+function getNextInterval(problem){
+  const revisionDates = getRevisionDates(problem);
+  for(let i = 0; i < revisionDates.length; i++){
+    const interval = INTERVALS[i];
+    if(!(problem.revisionsDone && problem.revisionsDone[interval])) return { interval, date: revisionDates[i], idx: i };
+  }
+  return null;
+}
+function getPrevInterval(problem){
+  for(let i = INTERVALS.length - 1; i >= 0; i--){ const interval = INTERVALS[i]; if(problem.revisionsDone && problem.revisionsDone[interval]) return { interval, idx: i }; }
+  return null;
+}
+function getNextAfterCurrent(problem){ const next = getNextInterval(problem); if(!next) return null; const currentIndex = INTERVALS.indexOf(next.interval); return currentIndex + 1 < INTERVALS.length ? INTERVALS[currentIndex + 1] : null; }
+function isDueToday(problem){ const next = getNextInterval(problem); return Boolean(next) && daysBetween(todayStr(), next.date) <= 0; }
+function isOverdue(problem){ const next = getNextInterval(problem); return Boolean(next) && daysBetween(todayStr(), next.date) < 0; }
+function openTab(name){
+  const tabIndex = TAB_ORDER.indexOf(name); if(tabIndex === -1) return;
+  document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+  document.getElementById(`panel-${name}`).classList.add("active");
+  document.querySelectorAll(".tab")[tabIndex].classList.add("active");
+  if(name === "today") renderToday(); if(name === "all") renderAll(); if(name === "stats") renderStats();
+}
+function updateAllViews(){ renderToday(); renderAll(); renderStats(); }
+function renderToday(){
+  const today = todayStr();
+  document.getElementById("today-date-str").textContent = fmtDate(today);
+  const due = problems.filter(problem => { const next = getNextInterval(problem); return next && daysBetween(today, next.date) <= 0; }).sort((a,b) => {
+    const aDiff = daysBetween(today, getNextInterval(a).date); const bDiff = daysBetween(today, getNextInterval(b).date);
+    if(aDiff !== bDiff) return aDiff - bDiff; return a.name.localeCompare(b.name);
+  });
+  document.getElementById("rev-count-str").textContent = due.length === 0 ? "Nothing due today" : `${due.length} problem${due.length > 1 ? "s" : ""} to revise`;
+  const row = document.getElementById("interval-info-row"); row.innerHTML = "";
+  const groups = {};
+  due.forEach(problem => { const next = getNextInterval(problem); if(!next) return; const label = INTERVAL_LABELS[INTERVALS.indexOf(next.interval)] || `Day ${next.interval}`; groups[label] = (groups[label] || 0) + 1; });
+  if(Object.keys(groups).length === 0){ const card = document.createElement("div"); card.className = "icard"; card.innerHTML = `<div class="icard-n" style="color:var(--green)">0</div><div class="icard-l">Due today</div>`; row.appendChild(card); }
+  else { Object.entries(groups).forEach(([label, count]) => { const card = document.createElement("div"); card.className = "icard"; card.innerHTML = `<div class="icard-n" style="color:var(--amber)">${count}</div><div class="icard-l">${escapeHtml(label)} revision</div>`; row.appendChild(card); }); }
+  const list = document.getElementById("today-list");
+  if(due.length === 0){ list.innerHTML = `<div class="empty-state"><div class="empty-icon">&#10003;</div><div style="font-weight:600;margin-bottom:6px">You're all caught up!</div><div>No revisions due today. Add new problems or check back tomorrow.</div></div>`; return; }
+  list.innerHTML = due.map(problem => {
+    const next = getNextInterval(problem); const overdueDays = Math.max(0, -daysBetween(today, next.date));
+    const alreadyMarked = problem.markedTodayDone && problem._markedDate === today;
+    const cardClass = alreadyMarked ? "done-today" : overdueDays > 0 ? "urgent" : "today-due";
+    const diffClass = problem.difficulty === "Easy" ? "d-easy" : problem.difficulty === "Hard" ? "d-hard" : "d-med";
+    const nextAfter = getNextAfterCurrent(problem);
+    const nextBadge = nextAfter ? `<span class="next-badge nb-green">Next: +${nextAfter}d</span>` : `<span class="next-badge nb-purple">Fully revised!</span>`;
+    const intervalLabel = INTERVAL_LABELS[INTERVALS.indexOf(next.interval)] || `Day ${next.interval}`;
+    return `<div class="rev-card ${cardClass}">
+      <div class="rev-top"><div class="rev-name">${escapeHtml(problem.name)}</div><span class="diff-badge ${diffClass}">${escapeHtml(problem.difficulty)}</span></div>
+      <div class="rev-meta">
+        <span>&#128197; Solved ${fmtDate(problem.dateSolved)}</span>
+        ${problem.topic ? `<span>&#128196; ${escapeHtml(problem.topic)}</span>` : ""}
+        ${problem.timeTaken ? `<span>&#9201; ${escapeHtml(problem.timeTaken)}</span>` : ""}
+        ${overdueDays > 0 ? `<span style="color:var(--red)">&#9888; ${overdueDays}d overdue</span>` : `<span style="color:var(--amber)">${escapeHtml(intervalLabel)} revision</span>`}
+      </div>
+      ${problem.approach ? `<div class="rev-approach"><strong style="font-size:11px;color:var(--accent)">Approach:</strong> ${escapeHtml(problem.approach)}</div>` : ""}
+      ${problem.insight ? `<div class="rev-approach" style="border-left-color:var(--amber)"><strong style="font-size:11px;color:var(--amber)">Key insight:</strong> ${escapeHtml(problem.insight)}</div>` : ""}
+      <div class="rev-actions">
+        ${alreadyMarked ? `<button class="btn btn-ghost btn-sm" onclick="unmarkRevision('${problem.id}')">Undo</button><span class="next-badge nb-green">Done for today</span>` : `<button class="btn btn-green btn-sm" onclick="markRevisionDone('${problem.id}')">&#10003; Revised</button>`}
+        ${!alreadyMarked ? nextBadge : ""}
+        <span class="interval-chip">${INTERVALS.map(interval => `<span style="color:${problem.revisionsDone && problem.revisionsDone[interval] ? "var(--green)" : "var(--border)"}">${interval}d</span>`).join(" &middot; ")}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+function refreshDayMarks(){ const today = todayStr(); let changed = false; problems.forEach(problem => { if(problem.markedTodayDone && problem._markedDate !== today){ problem.markedTodayDone = false; problem._markedDate = ""; changed = true; } }); if(changed) save(); }
+function setTodayDate(){ document.getElementById("f-date").value = todayStr(); }
+function addProblem(){
+  const name = document.getElementById("f-name").value.trim(); if(!name){ alert("Please enter a problem name."); return; }
+  problems.unshift({ id: makeProblemId(), name, topic: document.getElementById("f-topic").value.trim(), difficulty: document.getElementById("f-diff").value, timeTaken: document.getElementById("f-time").value.trim(), dateSolved: document.getElementById("f-date").value || todayStr(), approach: document.getElementById("f-approach").value.trim(), insight: document.getElementById("f-insight").value.trim(), revisionsDone: {}, markedTodayDone: false, _markedDate: "" });
+  save(); clearForm(); updateAllViews();
+  const msg = document.getElementById("add-msg"); msg.textContent = `"${name}" saved! Revision schedule: ${INTERVALS.map(interval => `+${interval}d`).join(", ")}`;
+  setTimeout(() => { if(msg.textContent.includes(`"${name}" saved!`)) msg.textContent = ""; }, 3500);
+}
+function clearForm(){ ["f-name", "f-topic", "f-time", "f-approach", "f-insight"].forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("f-diff").value = "Medium"; setTodayDate(); }
+function setFilter(diff, button){ filterDiff = diff; document.querySelectorAll(".filter-btn").forEach(filterButton => filterButton.classList.remove("active")); button.classList.add("active"); renderAll(); }
+function renderAll(){
+  const query = (document.getElementById("search-input").value || "").trim().toLowerCase();
+  const list = document.getElementById("all-list");
+  const filtered = problems.filter(problem => { const matchesDifficulty = filterDiff === "All" || problem.difficulty === filterDiff; const matchesQuery = !query || problem.name.toLowerCase().includes(query) || problem.topic.toLowerCase().includes(query); return matchesDifficulty && matchesQuery; });
+  if(filtered.length === 0){ list.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128218;</div><div style="font-weight:600;margin-bottom:6px">No matching problems</div><div>Try another search or add a new problem from the "Add problem" tab.</div></div>`; return; }
+  list.innerHTML = filtered.map(problem => {
+    const originalIndex = findProblemIndexById(problem.id); const diffClass = problem.difficulty === "Easy" ? "d-easy" : problem.difficulty === "Hard" ? "d-hard" : "d-med"; const doneCount = INTERVALS.filter(interval => problem.revisionsDone && problem.revisionsDone[interval]).length; const fullyDone = doneCount === INTERVALS.length; const next = getNextInterval(problem); const overdue = next && daysBetween(todayStr(), next.date) < 0;
+    return `<div class="prob-card">
+      <div class="prob-num">#${originalIndex + 1}</div>
+      <div class="prob-body">
+        <div class="prob-name">${escapeHtml(problem.name)}</div>
+        <div class="prob-meta">${escapeHtml(problem.topic || "-")} &nbsp;&middot;&nbsp; ${fmtDate(problem.dateSolved)} &nbsp;&middot;&nbsp; ${fullyDone ? `<span style="color:var(--green)">Fully revised</span>` : next ? overdue ? `<span style="color:var(--red)">Overdue (${Math.abs(daysBetween(todayStr(), next.date))}d)</span>` : `<span style="color:var(--amber)">Next revision: ${fmtDate(next.date)}</span>` : "-"}</div>
+      </div>
+      <div class="prob-actions">
+        <div class="heat-dots">${INTERVALS.map(interval => `<div class="heat-dot${problem.revisionsDone && problem.revisionsDone[interval] ? " done" : ""}"></div>`).join("")}</div>
+        <span class="diff-badge ${diffClass}" style="margin-left:4px">${escapeHtml(problem.difficulty)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="openEdit('${problem.id}')" style="padding:4px 8px">Edit</button>
+        <button class="delete-btn" onclick="deleteProblem('${problem.id}')" title="Delete">&#128465;</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function deleteProblem(id){ const index = findProblemIndexById(id); if(index === -1) return; const problem = problems[index]; if(!confirm(`Delete "${problem.name}"? This cannot be undone.`)) return; problems.splice(index, 1); if(editId === id) closeModal(); save(); updateAllViews(); }
+function openEdit(id){ const problem = getProblemById(id); if(!problem) return; editId = id; document.getElementById("e-name").value = problem.name; document.getElementById("e-topic").value = problem.topic; document.getElementById("e-diff").value = problem.difficulty; document.getElementById("e-time").value = problem.timeTaken; document.getElementById("e-approach").value = problem.approach; document.getElementById("e-insight").value = problem.insight; document.getElementById("edit-modal").classList.add("open"); }
+function closeModal(){ document.getElementById("edit-modal").classList.remove("open"); editId = null; }
+function saveEdit(){ if(editId === null) return; const problem = getProblemById(editId); if(!problem) return; const updatedName = document.getElementById("e-name").value.trim(); if(!updatedName){ alert("Problem name cannot be empty."); return; } problem.name = updatedName; problem.topic = document.getElementById("e-topic").value.trim(); problem.difficulty = document.getElementById("e-diff").value; problem.timeTaken = document.getElementById("e-time").value.trim(); problem.approach = document.getElementById("e-approach").value.trim(); problem.insight = document.getElementById("e-insight").value.trim(); save(); closeModal(); updateAllViews(); }
+function markRevisionDone(id){ const problem = getProblemById(id); if(!problem) return; const next = getNextInterval(problem); if(!next) return; problem.revisionsDone[next.interval] = todayStr(); problem.markedTodayDone = true; problem._markedDate = todayStr(); save(); updateAllViews(); }
+function unmarkRevision(id){ const problem = getProblemById(id); if(!problem) return; const previous = getPrevInterval(problem); if(!previous) return; delete problem.revisionsDone[previous.interval]; problem.markedTodayDone = false; problem._markedDate = ""; save(); updateAllViews(); }
+function renderStats(){
+  const total = problems.length; const fullyDone = problems.filter(problem => getNextInterval(problem) === null).length; const overdue = problems.filter(problem => isOverdue(problem)).length; const dueToday = problems.filter(problem => isDueToday(problem)).length;
+  const grid = document.getElementById("stats-grid");
+  grid.innerHTML = [["stat-n", "n-accent", total, "Total problems logged"],["stat-n", "n-green", fullyDone, "Fully revised"],["stat-n", "n-amber", dueToday, "Due today"],["stat-n", "n-purple", overdue, "Overdue"]].map(([cls, color, count, label]) => `<div class="stat-card"><div class="${cls}" style="color:var(${color})">${count}</div><div class="stat-l">${label}</div></div>`).join("");
+  const topicMap = {}; problems.forEach(problem => { const topic = problem.topic || "Other"; if(!topicMap[topic]) topicMap[topic] = { total: 0, done: 0 }; topicMap[topic].total++; if(getNextInterval(problem) === null) topicMap[topic].done++; });
+  const topicGrid = document.getElementById("topic-grid"); const maxTopicCount = Math.max(1, ...Object.values(topicMap).map(value => value.total));
+  topicGrid.innerHTML = Object.entries(topicMap).map(([topic, value]) => `<div class="topic-card"><div class="topic-name">${escapeHtml(topic)}</div><div class="topic-bar-bg"><div class="topic-bar-fill" style="width:${Math.round(value.total / maxTopicCount * 100)}%"></div></div><div class="topic-count">${value.total} problem${value.total > 1 ? "s" : ""} &middot; ${value.done} fully revised</div></div>`).join("") || `<div style="color:var(--muted);font-size:13px">No problems yet</div>`;
+  document.getElementById("cal-headers").innerHTML = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(header => `<div class="cal-label">${header}</div>`).join("");
+  const calendarDays = []; for(let i = 27; i >= 0; i--){ const date = new Date(); date.setDate(date.getDate() - i); calendarDays.push(toDateInputValue(date)); }
+  const firstDayOfWeek = dateFromStr(calendarDays[0]).getDay(); const paddedCalendar = Array(firstDayOfWeek).fill(null).concat(calendarDays);
+  document.getElementById("cal-grid").innerHTML = paddedCalendar.map(day => { if(!day) return `<div class="cal-day"></div>`; const count = problems.filter(problem => problem.dateSolved === day).length; const cls = count >= 3 ? "has3" : count >= 1 ? "has1" : ""; return `<div class="cal-day ${cls}" title="${fmtDate(day)}: ${count} solved">${count || ""}</div>`; }).join("");
+}
+load(); refreshDayMarks(); setTodayDate(); updateAllViews();
+document.getElementById("edit-modal").addEventListener("click", function(event){ if(event.target === this) closeModal(); });
+window.addEventListener("storage", function(event){ if(event.key === STORAGE_KEY){ load(); refreshDayMarks(); updateAllViews(); } });
+</script>
+</body>
+</html>
