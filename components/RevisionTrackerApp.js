@@ -56,6 +56,7 @@ export default function RevisionTrackerApp() {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("today");
   const [status, setStatus] = useState("Loading...");
+  const [loadError, setLoadError] = useState("");
   const [form, setForm] = useState({
     name: "",
     topic: "",
@@ -68,27 +69,54 @@ export default function RevisionTrackerApp() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
+  async function readJson(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      throw new Error("The server returned an invalid response.");
+    }
+  }
+
   async function persist(nextProblems, successMessage = "Saved") {
     setProblems(nextProblems);
     setStatus("Saving...");
-    const response = await fetch("/api/revision", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ problems: nextProblems })
-    });
-    if (!response.ok) {
-      setStatus("Save failed");
-      return;
+    try {
+      const response = await fetch("/api/revision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problems: nextProblems })
+      });
+      const payload = await readJson(response);
+      if (!response.ok) {
+        setStatus(payload.error || "Save failed");
+        return;
+      }
+      setLoadError("");
+      setStatus(successMessage);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Save failed");
     }
-    setStatus(successMessage);
   }
 
   useEffect(() => {
     async function load() {
-      const response = await fetch("/api/revision");
-      const payload = await response.json();
-      setProblems((payload.problems || []).map(normalizeProblem));
-      setStatus("Loaded");
+      try {
+        const response = await fetch("/api/revision");
+        const payload = await readJson(response);
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to load revision tracker data.");
+        }
+        setProblems((payload.problems || []).map(normalizeProblem));
+        setLoadError("");
+        setStatus("Loaded");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to load revision tracker data.";
+        setProblems([]);
+        setLoadError(message);
+        setStatus(message);
+      }
     }
     load();
   }, []);
@@ -219,6 +247,7 @@ export default function RevisionTrackerApp() {
         </div>
 
         <div className="save-state">{status}</div>
+        {loadError ? <div className="error-banner">{loadError}</div> : null}
 
         <div className="tabs">
           {["today", "add", "all", "stats"].map(tab => (
@@ -390,6 +419,7 @@ export default function RevisionTrackerApp() {
         .container { max-width: 900px; margin: 0 auto; }
         h1 { font-size: 20px; font-weight: 700; margin: 0; }
         .sub, .save-state { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+        .error-banner { margin: 10px 0 14px; background: #4c1d1d; color: #fecaca; border: 1px solid #7f1d1d; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; }
         .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab { padding: 7px 16px; border-radius: 8px; border: .5px solid #334155; font-size: 13px; font-weight: 500; cursor: pointer; background: #1e293b; color: #94a3b8; }

@@ -35,34 +35,63 @@ export default function DailyTrackerApp() {
   const [currentDay, setCurrentDay] = useState(1);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [status, setStatus] = useState("Loading...");
+  const [loadError, setLoadError] = useState("");
+
+  async function readJson(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      throw new Error("The server returned an invalid response.");
+    }
+  }
 
   async function persist(nextData, successMessage = "Saved") {
     setData(nextData);
     setStatus("Saving...");
-    const response = await fetch("/api/daily", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nextData)
-    });
-    if (!response.ok) {
-      setStatus("Save failed");
-      return;
+    try {
+      const response = await fetch("/api/daily", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nextData)
+      });
+      const payload = await readJson(response);
+      if (!response.ok) {
+        setStatus(payload.error || "Save failed");
+        return;
+      }
+      setLoadError("");
+      setStatus(successMessage);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Save failed");
     }
-    setStatus(successMessage);
   }
 
   useEffect(() => {
     async function load() {
-      const response = await fetch("/api/daily");
-      const payload = await response.json();
-      const startDate = payload.startDate || todayKey();
-      const nextData = { startDate, days: payload.days || {} };
-      setData(nextData);
-      const day = Math.min(Math.max(getDayDiff(startDate) + 1, 1), 90);
-      setCurrentDay(day);
-      setStatus("Loaded");
-      if (!payload.startDate) {
-        await persist(nextData, "Initialized");
+      try {
+        const response = await fetch("/api/daily");
+        const payload = await readJson(response);
+        if (!response.ok) {
+          throw new Error(payload.error || "Failed to load daily tracker data.");
+        }
+        const startDate = payload.startDate || todayKey();
+        const nextData = { startDate, days: payload.days || {} };
+        setData(nextData);
+        const day = Math.min(Math.max(getDayDiff(startDate) + 1, 1), 90);
+        setCurrentDay(day);
+        setLoadError("");
+        setStatus("Loaded");
+        if (!payload.startDate) {
+          await persist(nextData, "Initialized");
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to load daily tracker data.";
+        setLoadError(message);
+        setStatus(message);
+        setData({ startDate: todayKey(), days: {} });
+        setCurrentDay(1);
       }
     }
     load();
@@ -157,6 +186,7 @@ export default function DailyTrackerApp() {
         </div>
 
         <div className="save-state">{status}</div>
+        {loadError ? <div className="error-banner">{loadError}</div> : null}
 
         <div className="stats">
           <div className="stat"><div className="stat-n n-accent">{currentDay}</div><div className="stat-l">Current day</div></div>
@@ -272,6 +302,7 @@ export default function DailyTrackerApp() {
         h2 { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 8px; }
         .sub { font-size: 12px; color: #94a3b8; margin-top: 3px; }
         .save-state { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+        .error-banner { margin-bottom: 12px; background: #4c1d1d; color: #fecaca; border: 1px solid #7f1d1d; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; }
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
         .stat, .card-section { background: #1e293b; border: 0.5px solid #334155; border-radius: 10px; padding: 12px 14px; }
